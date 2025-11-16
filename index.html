@@ -2,10 +2,47 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Lifeplan Design</title>
+    <title>元利均等返済シミュレーター</title>
 </head>
 <body>
-    <h1>Hello! This is Lifeplan Design.</h1>
-    <p>あなたの資産寿命シミュレーションサイトの準備が整いました。</p>
+    <h1>元利均等返済シミュレーター（Version 0.1）</h1>
+
+    <label>借入額（万円）:</label>
+    <input id="amount" type="number" value="4000"><br><br>
+
+    <label>金利（年利 %）:</label>
+    <input id="rate" type="number" step="0.01" value="1.0"><br><br>
+
+    <label>返済期間（年）:</label>
+    <input id="years" type="number" value="35"><br><br>
+
+    <button onclick="calculate()">計算する</button>
+
+    <h2>結果</h2>
+    <p id="monthly"></p>
+    <p id="total"></p>
+    <p id="interest"></p>
+
+    <script>
+        function calculate() {
+            const amount = Number(document.getElementById("amount").value) * 10000;
+            const rate = Number(document.getElementById("rate").value) / 100;
+            const years = Number(document.getElementById("years").value);
+
+            const monthlyRate = rate / 12;
+            const n = years * 12;
+
+            const monthlyPayment =
+                amount * (monthlyRate * Math.pow(1 + monthlyRate, n)) /
+                (Math.pow(1 + monthlyRate, n) - 1);
+
+            const totalPayment = monthlyPayment * n;
+            const interest = totalPayment - amount;
+
+            document.getElementById("monthly").innerText = "毎月返済額: " + Math.round(monthlyPayment).toLocaleString() + " 円";
+            document.getElementById("total").innerText = "総返済額: " + Math.round(totalPayment).toLocaleString() + " 円";
+            document.getElementById("interest").innerText = "支払利息総額: " + Math.round(interest).toLocaleString() + " 円";
+        }
+    </script>
 </body>
 </html>
