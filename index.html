@@ -4,6 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <title>元利均等返済シミュレーター</title>
+
+    <!-- Chart.js 読み込み -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,16 +17,20 @@
         .rate-row {
             margin-bottom: 5px;
         }
+
+        table {
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 5px 10px;
+        }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
-<h2>計算履歴</h2>
-<div id="history"></div>
-<button onclick="clearHistory()">履歴をクリア</button>
-
 <body>
-    <h1>元利均等返済シミュレーター（Version 0.3）</h1>
+    <h1>元利均等返済シミュレーター（Version 1.0）</h1>
 
     <label>借入額（万円）:</label>
     <input id="amount" type="number" value="4000"><br><br>
@@ -51,16 +59,23 @@
     <h2>返済スケジュール（毎月）</h2>
     <table id="schedule" border="1" cellpadding="5"></table>
 
+    <!-- ★ グラフ領域（STEP2） -->
     <h2>残高推移グラフ</h2>
     <canvas id="balanceChart" width="400" height="200"></canvas>
 
     <h2>元金・利息の推移（毎月）</h2>
     <canvas id="paymentChart" width="400" height="200"></canvas>
 
+    <!-- ★ 履歴領域 -->
+    <h2>計算履歴</h2>
+    <div id="history"></div>
+    <button onclick="clearHistory()">履歴をクリア</button>
+
     <script>
-        // -----------------------------
-        // 金利パターン追加
-        // -----------------------------
+
+        /*----------------------------------
+            金利パターン追加
+        ----------------------------------*/
         function addRate() {
             const list = document.getElementById("rate-list");
 
@@ -75,9 +90,9 @@
             list.appendChild(row);
         }
 
-        // -----------------------------
-        // 金利パターン削除
-        // -----------------------------
+        /*----------------------------------
+            金利パターン削除
+        ----------------------------------*/
         function removeRate(button) {
             const row = button.parentElement;
             const list = document.getElementById("rate-list");
@@ -89,9 +104,11 @@
             }
         }
 
-        // -----------------------------
-        // 計算（Version 0.3: とりあえず最初の金利だけ利用）
-        // -----------------------------
+
+        /*----------------------------------
+            Version 1.0
+            返済計算（1つ目の金利を使用）
+        ----------------------------------*/
         function calculate() {
 
             const amount = Number(document.getElementById("amount").value) * 10000;
@@ -103,6 +120,7 @@
                 return;
             }
 
+            // 最初の金利で計算
             const rate = Number(rateInputs[0].value) / 100;
 
             const monthlyRate = rate / 12;
@@ -124,9 +142,10 @@
             document.getElementById("interest").innerText =
                 "支払利息総額: " + Math.round(interest).toLocaleString() + " 円";
 
-            // -----------------------------
-            // 残高推移の計算
-            // -----------------------------
+
+            /*----------------------------------
+                残高 / 元金 / 利息 の推移計算
+            ----------------------------------*/
             let balance = amount;
             let principals = [];
             let balances = [];
@@ -143,9 +162,9 @@
                 interests.push(interestPayment);
             }
 
-            // -----------------------------
-            // テーブル生成
-            // -----------------------------
+            /*----------------------------------
+                毎月の返済テーブル
+            ----------------------------------*/
             let tableHTML = "<tr><th>月</th><th>元金</th><th>利息</th><th>残高</th></tr>";
 
             for (let i = 0; i < n; i++) {
@@ -159,211 +178,178 @@
                 `;
             }
 
-            // -----------------------------
-            // Version 0.4：複数金利の比較計算
-            // -----------------------------
-            function compareRates() {
-
-                const amount = Number(document.getElementById("amount").value) * 10000;
-                const years = Number(document.getElementById("years").value);
-
-                const rateInputs = document.querySelectorAll(".rate-input");
-                if (rateInputs.length === 0) {
-                    alert("金利パターンを1つ以上入力してください。");
-                    return;
-                }
-
-                const n = years * 12;
-
-                let tableHTML = `
-        <h2>金利比較一覧</h2>
-        <table border="1" cellpadding="5">
-            <tr>
-                <th>金利</th>
-                <th>毎月返済額</th>
-                <th>総返済額</th>
-                <th>支払利息</th>
-            </tr>
-    `;
-
-                for (let i = 0; i < rateInputs.length; i++) {
-
-                    const rate = Number(rateInputs[i].value) / 100;
-                    const monthlyRate = rate / 12;
-
-                    const monthlyPayment =
-                        amount * (monthlyRate * Math.pow(1 + monthlyRate, n)) /
-                        (Math.pow(1 + monthlyRate, n) - 1);
-
-                    const totalPayment = monthlyPayment * n;
-                    const interest = totalPayment - amount;
-
-                    tableHTML += `
-            <tr>
-                <td>${rateInputs[i].value}%</td>
-                <td>${Math.round(monthlyPayment).toLocaleString()} 円</td>
-                <td>${Math.round(totalPayment).toLocaleString()} 円</td>
-                <td>${Math.round(interest).toLocaleString()} 円</td>
-            </tr>
-        `;
-                }
-
-                tableHTML += "</table>";
-
-                // 結果の下に比較テーブルを挿入
-                document.getElementById("total").insertAdjacentHTML("afterend", tableHTML);
-            }
-
-            // ------------------------------------
-            // Version 0.5：localStorage で履歴保存
-            // ------------------------------------
-            function saveHistory(rateList, monthly, total, interest) {
-                const now = new Date();
-                const timestamp = now.toLocaleString("ja-JP");
-
-                const record = {
-                    date: timestamp,
-                    rates: rateList,
-                    monthly: monthly,
-                    total: total,
-                    interest: interest
-                };
-
-                // 既存履歴を読み込む
-                let history = JSON.parse(localStorage.getItem("loanHistory") || "[]");
-
-                // 最大20件に制限
-                history.unshift(record);
-                if (history.length > 20) history.pop();
-
-                // 保存
-                localStorage.setItem("loanHistory", JSON.stringify(history));
-
-                renderHistory();
-            }
-
-            // 履歴の表示
-            function renderHistory() {
-                let history = JSON.parse(localStorage.getItem("loanHistory") || "[]");
-
-                let html = "<table border='1' cellpadding='5'>";
-                html += "<tr><th>日時</th><th>金利パターン</th><th>毎月返済</th><th>総返済額</th><th>利息</th></tr>";
-
-                for (let item of history) {
-                    html += `
-            <tr>
-                <td>${item.date}</td>
-                <td>${item.rates.join(", ")}%</td>
-                <td>${Math.round(item.monthly).toLocaleString()} 円</td>
-                <td>${Math.round(item.total).toLocaleString()} 円</td>
-                <td>${Math.round(item.interest).toLocaleString()} 円</td>
-            </tr>
-        `;
-                }
-
-                html += "</table>";
-
-                document.getElementById("history").innerHTML = html;
-            }
-
-            // 履歴削除
-            function clearHistory() {
-                localStorage.removeItem("loanHistory");
-                renderHistory();
-            }
-
-            // ページ読み込み時に履歴を表示
-            window.onload = function () {
-                renderHistory();
-            };
-            let balanceChartInstance = null;
-            let paymentChartInstance = null;
-
-            // ---------------------------------
-            // 残高推移グラフ
-            // ---------------------------------
-            function drawBalanceChart(balances) {
-
-                const ctx = document.getElementById("balanceChart").getContext("2d");
-
-                if (balanceChartInstance) balanceChartInstance.destroy();
-
-                balanceChartInstance = new Chart(ctx, {
-                    type: "line",
-                    data: {
-                        labels: balances.map((_, i) => i + 1),
-                        datasets: [{
-                            label: "残高",
-                            data: balances,
-                            borderColor: "blue",
-                            borderWidth: 2,
-                            fill: false
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: {
-                                ticks: {
-                                    callback: (value) => value.toLocaleString() + "円"
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-
-            // ---------------------------------
-            // 元金＆利息の毎月推移グラフ
-            // ---------------------------------
-            function drawPaymentChart(principals, interests) {
-
-                const ctx = document.getElementById("paymentChart").getContext("2d");
-
-                if (paymentChartInstance) paymentChartInstance.destroy();
-
-                paymentChartInstance = new Chart(ctx, {
-                    type: "bar",
-                    data: {
-                        labels: principals.map((_, i) => i + 1),
-                        datasets: [
-                            {
-                                label: "元金返済額",
-                                data: principals,
-                                backgroundColor: "green"
-                            },
-                            {
-                                label: "利息支払額",
-                                data: interests,
-                                backgroundColor: "orange"
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: {
-                                ticks: {
-                                    callback: (value) => value.toLocaleString() + "円"
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-
             document.getElementById("schedule").innerHTML = tableHTML;
 
-            // グラフ描画
+            /*----------------------------------
+                グラフ描画
+            ----------------------------------*/
             drawBalanceChart(balances);
             drawPaymentChart(principals, interests);
 
-            // 履歴保存を追加
-            const rateList = Array.from(document.querySelectorAll(".rate-input"))
-                .map(x => Number(x.value));
+            /*----------------------------------
+                履歴保存
+            ----------------------------------*/
+            const rateList = Array.from(rateInputs).map(x => Number(x.value));
             saveHistory(rateList, monthlyPayment, totalPayment, interest);
         }
-    </script>
-</body>
 
+
+        /*----------------------------------
+            Version 0.4
+            複数金利比較一覧
+        ----------------------------------*/
+        function compareRates() {
+
+            const amount = Number(document.getElementById("amount").value) * 10000;
+            const years = Number(document.getElementById("years").value);
+
+            const rateInputs = document.querySelectorAll(".rate-input");
+            const n = years * 12;
+
+            let html = `
+                <h2>金利比較一覧</h2>
+                <table border="1">
+                    <tr>
+                        <th>金利</th>
+                        <th>毎月返済額</th>
+                        <th>総返済額</th>
+                        <th>支払利息</th>
+                    </tr>
+            `;
+
+            for (let i = 0; i < rateInputs.length; i++) {
+                const rate = Number(rateInputs[i].value) / 100;
+                const monthlyRate = rate / 12;
+
+                const monthlyPayment =
+                    amount * (monthlyRate * Math.pow(1 + monthlyRate, n)) /
+                    (Math.pow(1 + monthlyRate, n) - 1);
+
+                const totalPayment = monthlyPayment * n;
+                const interest = totalPayment - amount;
+
+                html += `
+                    <tr>
+                        <td>${rateInputs[i].value}%</td>
+                        <td>${Math.round(monthlyPayment).toLocaleString()} 円</td>
+                        <td>${Math.round(totalPayment).toLocaleString()} 円</td>
+                        <td>${Math.round(interest).toLocaleString()} 円</td>
+                    </tr>
+                `;
+            }
+
+            html += "</table>";
+
+            document.getElementById("interest").insertAdjacentHTML("afterend", html);
+        }
+
+
+        /*----------------------------------
+            グラフ機能（Version 0.6）
+        ----------------------------------*/
+        let balanceChartInstance = null;
+        let paymentChartInstance = null;
+
+        function drawBalanceChart(balances) {
+            const ctx = document.getElementById("balanceChart").getContext("2d");
+
+            if (balanceChartInstance) balanceChartInstance.destroy();
+
+            balanceChartInstance = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: balances.map((_, i) => i + 1),
+                    datasets: [{
+                        label: "残高",
+                        data: balances,
+                        borderColor: "blue",
+                        borderWidth: 2,
+                        fill: false
+                    }]
+                }
+            });
+        }
+
+        function drawPaymentChart(principals, interests) {
+            const ctx = document.getElementById("paymentChart").getContext("2d");
+
+            if (paymentChartInstance) paymentChartInstance.destroy();
+
+            paymentChartInstance = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: principals.map((_, i) => i + 1),
+                    datasets: [
+                        {
+                            label: "元金",
+                            data: principals,
+                            backgroundColor: "green"
+                        },
+                        {
+                            label: "利息",
+                            data: interests,
+                            backgroundColor: "orange"
+                        }
+                    ]
+                }
+            });
+        }
+
+
+        /*----------------------------------
+            履歴保存（Version 0.5）
+        ----------------------------------*/
+        function saveHistory(rateList, monthly, total, interest) {
+            const now = new Date();
+            const timestamp = now.toLocaleString("ja-JP");
+
+            const record = {
+                date: timestamp,
+                rates: rateList,
+                monthly: monthly,
+                total: total,
+                interest: interest
+            };
+
+            let history = JSON.parse(localStorage.getItem("loanHistory") || "[]");
+
+            history.unshift(record);
+            if (history.length > 20) history.pop();
+
+            localStorage.setItem("loanHistory", JSON.stringify(history));
+
+            renderHistory();
+        }
+
+        function renderHistory() {
+            let history = JSON.parse(localStorage.getItem("loanHistory") || "[]");
+
+            let html = "<table border='1'><tr><th>日時</th><th>金利</th><th>毎月</th><th>総返済額</th><th>利息</th></tr>";
+
+            for (let item of history) {
+                html += `
+                    <tr>
+                        <td>${item.date}</td>
+                        <td>${item.rates.join(", ")}%</td>
+                        <td>${Math.round(item.monthly).toLocaleString()} 円</td>
+                        <td>${Math.round(item.total).toLocaleString()} 円</td>
+                        <td>${Math.round(item.interest).toLocaleString()} 円</td>
+                    </tr>
+                `;
+            }
+
+            html += "</table>";
+            document.getElementById("history").innerHTML = html;
+        }
+
+        function clearHistory() {
+            localStorage.removeItem("loanHistory");
+            renderHistory();
+        }
+
+        window.onload = renderHistory;
+
+    </script>
+
+</body>
 </html>
