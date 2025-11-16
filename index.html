@@ -14,6 +14,7 @@
             margin-bottom: 5px;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <h2>計算履歴</h2>
@@ -49,6 +50,12 @@
 
     <h2>返済スケジュール（毎月）</h2>
     <table id="schedule" border="1" cellpadding="5"></table>
+
+    <h2>残高推移グラフ</h2>
+    <canvas id="balanceChart" width="400" height="200"></canvas>
+
+    <h2>元金・利息の推移（毎月）</h2>
+    <canvas id="paymentChart" width="400" height="200"></canvas>
 
     <script>
         // -----------------------------
@@ -269,8 +276,87 @@
             window.onload = function () {
                 renderHistory();
             };
+            let balanceChartInstance = null;
+            let paymentChartInstance = null;
+
+            // ---------------------------------
+            // 残高推移グラフ
+            // ---------------------------------
+            function drawBalanceChart(balances) {
+
+                const ctx = document.getElementById("balanceChart").getContext("2d");
+
+                if (balanceChartInstance) balanceChartInstance.destroy();
+
+                balanceChartInstance = new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: balances.map((_, i) => i + 1),
+                        datasets: [{
+                            label: "残高",
+                            data: balances,
+                            borderColor: "blue",
+                            borderWidth: 2,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                ticks: {
+                                    callback: (value) => value.toLocaleString() + "円"
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // ---------------------------------
+            // 元金＆利息の毎月推移グラフ
+            // ---------------------------------
+            function drawPaymentChart(principals, interests) {
+
+                const ctx = document.getElementById("paymentChart").getContext("2d");
+
+                if (paymentChartInstance) paymentChartInstance.destroy();
+
+                paymentChartInstance = new Chart(ctx, {
+                    type: "bar",
+                    data: {
+                        labels: principals.map((_, i) => i + 1),
+                        datasets: [
+                            {
+                                label: "元金返済額",
+                                data: principals,
+                                backgroundColor: "green"
+                            },
+                            {
+                                label: "利息支払額",
+                                data: interests,
+                                backgroundColor: "orange"
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                ticks: {
+                                    callback: (value) => value.toLocaleString() + "円"
+                                }
+                            }
+                        }
+                    }
+                });
+            }
 
             document.getElementById("schedule").innerHTML = tableHTML;
+
+            // グラフ描画
+            drawBalanceChart(balances);
+            drawPaymentChart(principals, interests);
 
             // 履歴保存を追加
             const rateList = Array.from(document.querySelectorAll(".rate-input"))
