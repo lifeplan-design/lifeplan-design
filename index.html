@@ -85,10 +85,10 @@
 
         <h2>金利パターン</h2>
         <div id="rate-list">
-            <div class="rate-row">
-                <input type="number" class="rate-input form-control d-inline-block" style="width:120px;" value="1.0"
-                    step="0.01"> %
-                <button onclick="removeRate(this)">－</button>
+            <div class="rate-row d-flex align-items-center mb-2">
+                <input type="number" class="rate-input form-control" style="width:120px;" value="1.0" step="0.01">
+                <span class="ms-2 me-2">%</span>
+                <button class="btn btn-danger btn-sm" onclick="removeRate(this)">－</button>
             </div>
         </div>
         <button onclick="addRate()">＋ 金利パターン追加</button>
@@ -121,21 +121,29 @@
         <script>
 
             /*----------------------------------
-                金利パターン追加
-            ----------------------------------*/
+    金利パターン追加
+----------------------------------*/
             function addRate() {
                 const list = document.getElementById("rate-list");
 
                 const row = document.createElement("div");
-                row.className = "rate-row";
+                row.className = "rate-row mb-2";
 
                 row.innerHTML = `
-                <input type="number" class="rate-input" value="1.0" step="0.01"> %
-                <button onclick="removeRate(this)">－</button>
-            `;
+        <div class="d-flex align-items-center">
+            <input type="number" 
+                class="rate-input form-control" 
+                style="width:120px;" 
+                value="1.0" 
+                step="0.01">
+            <span class="ms-2 me-2">%</span>
+            <button class="btn btn-danger btn-sm" onclick="removeRate(this)">－</button>
+        </div>
+    `;
 
                 list.appendChild(row);
             }
+
 
             /*----------------------------------
                 金利パターン削除
