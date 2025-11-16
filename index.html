@@ -4,10 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <title>元利均等返済シミュレーター</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+        .rate-row {
+            margin-bottom: 5px;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>元利均等返済シミュレーター（Version 0.1）</h1>
+    <h1>元利均等返済シミュレーター（Version 0.3）</h1>
 
     <label>借入額（万円）:</label>
     <input id="amount" type="number" value="4000"><br><br>
@@ -23,8 +32,6 @@
         </div>
     </div>
     <button onclick="addRate()">＋ 金利パターン追加</button>
-    <!-- ⭐⭐⭐ ここまで ⭐⭐⭐ -->
-
 
     <br><br>
     <button onclick="calculate()">計算する</button>
@@ -38,10 +45,52 @@
     <table id="schedule" border="1" cellpadding="5"></table>
 
     <script>
+        // -----------------------------
+        // 金利パターン追加
+        // -----------------------------
+        function addRate() {
+            const list = document.getElementById("rate-list");
+
+            const row = document.createElement("div");
+            row.className = "rate-row";
+
+            row.innerHTML = `
+                <input type="number" class="rate-input" value="1.0" step="0.01"> %
+                <button onclick="removeRate(this)">－</button>
+            `;
+
+            list.appendChild(row);
+        }
+
+        // -----------------------------
+        // 金利パターン削除
+        // -----------------------------
+        function removeRate(button) {
+            const row = button.parentElement;
+            const list = document.getElementById("rate-list");
+
+            if (list.children.length > 1) {
+                row.remove();
+            } else {
+                alert("最低1つは金利パターンを残してください。");
+            }
+        }
+
+        // -----------------------------
+        // 計算（Version 0.3: とりあえず最初の金利だけ利用）
+        // -----------------------------
         function calculate() {
+
             const amount = Number(document.getElementById("amount").value) * 10000;
-            const rate = Number(document.getElementById("rate").value) / 100;
             const years = Number(document.getElementById("years").value);
+
+            const rateInputs = document.querySelectorAll(".rate-input");
+            if (rateInputs.length === 0) {
+                alert("金利パターンを1つ以上入力してください。");
+                return;
+            }
+
+            const rate = Number(rateInputs[0].value) / 100;
 
             const monthlyRate = rate / 12;
             const n = years * 12;
@@ -53,11 +102,18 @@
             const totalPayment = monthlyPayment * n;
             const interest = totalPayment - amount;
 
-            document.getElementById("monthly").innerText = "毎月返済額: " + Math.round(monthlyPayment).toLocaleString() + " 円";
-            document.getElementById("total").innerText = "総返済額: " + Math.round(totalPayment).toLocaleString() + " 円";
-            document.getElementById("interest").innerText = "支払利息総額: " + Math.round(interest).toLocaleString() + " 円";
+            document.getElementById("monthly").innerText =
+                "毎月返済額: " + Math.round(monthlyPayment).toLocaleString() + " 円";
 
-            // Version 0.2: 残高推移の計算
+            document.getElementById("total").innerText =
+                "総返済額: " + Math.round(totalPayment).toLocaleString() + " 円";
+
+            document.getElementById("interest").innerText =
+                "支払利息総額: " + Math.round(interest).toLocaleString() + " 円";
+
+            // -----------------------------
+            // 残高推移の計算
+            // -----------------------------
             let balance = amount;
             let principals = [];
             let balances = [];
@@ -69,35 +125,28 @@
 
                 balance -= principalPayment;
 
-                // push（配列に記録）
                 balances.push(balance);
                 principals.push(principalPayment);
                 interests.push(interestPayment);
             }
 
-            // デバッグ表示（後で消してOK）
-            console.log("残高推移", balances);
-            console.log("元金返済額推移", principals);
-            console.log("利息支払額推移", interests);
-
-            // Version 0.2.1: テーブル生成
+            // -----------------------------
+            // テーブル生成
+            // -----------------------------
             let tableHTML = "<tr><th>月</th><th>元金</th><th>利息</th><th>残高</th></tr>";
 
             for (let i = 0; i < n; i++) {
                 tableHTML += `
-        <tr>
-            <td>${i + 1}</td>
-            <td>${Math.round(principals[i]).toLocaleString()}</td>
-            <td>${Math.round(interests[i]).toLocaleString()}</td>
-            <td>${Math.round(balances[i]).toLocaleString()}</td>
-        </tr>
-    `;
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${Math.round(principals[i]).toLocaleString()}</td>
+                        <td>${Math.round(interests[i]).toLocaleString()}</td>
+                        <td>${Math.round(balances[i]).toLocaleString()}</td>
+                    </tr>
+                `;
             }
 
-            // 挿入
             document.getElementById("schedule").innerHTML = tableHTML;
-
-
         }
     </script>
 </body>
