@@ -16,6 +16,10 @@
     </style>
 </head>
 
+<h2>計算履歴</h2>
+<div id="history"></div>
+<button onclick="clearHistory()">履歴をクリア</button>
+
 <body>
     <h1>元利均等返済シミュレーター（Version 0.3）</h1>
 
@@ -147,7 +151,7 @@
                     </tr>
                 `;
             }
-            
+
             // -----------------------------
             // Version 0.4：複数金利の比較計算
             // -----------------------------
@@ -203,8 +207,75 @@
                 document.getElementById("total").insertAdjacentHTML("afterend", tableHTML);
             }
 
+            // ------------------------------------
+            // Version 0.5：localStorage で履歴保存
+            // ------------------------------------
+            function saveHistory(rateList, monthly, total, interest) {
+                const now = new Date();
+                const timestamp = now.toLocaleString("ja-JP");
+
+                const record = {
+                    date: timestamp,
+                    rates: rateList,
+                    monthly: monthly,
+                    total: total,
+                    interest: interest
+                };
+
+                // 既存履歴を読み込む
+                let history = JSON.parse(localStorage.getItem("loanHistory") || "[]");
+
+                // 最大20件に制限
+                history.unshift(record);
+                if (history.length > 20) history.pop();
+
+                // 保存
+                localStorage.setItem("loanHistory", JSON.stringify(history));
+
+                renderHistory();
+            }
+
+            // 履歴の表示
+            function renderHistory() {
+                let history = JSON.parse(localStorage.getItem("loanHistory") || "[]");
+
+                let html = "<table border='1' cellpadding='5'>";
+                html += "<tr><th>日時</th><th>金利パターン</th><th>毎月返済</th><th>総返済額</th><th>利息</th></tr>";
+
+                for (let item of history) {
+                    html += `
+            <tr>
+                <td>${item.date}</td>
+                <td>${item.rates.join(", ")}%</td>
+                <td>${Math.round(item.monthly).toLocaleString()} 円</td>
+                <td>${Math.round(item.total).toLocaleString()} 円</td>
+                <td>${Math.round(item.interest).toLocaleString()} 円</td>
+            </tr>
+        `;
+                }
+
+                html += "</table>";
+
+                document.getElementById("history").innerHTML = html;
+            }
+
+            // 履歴削除
+            function clearHistory() {
+                localStorage.removeItem("loanHistory");
+                renderHistory();
+            }
+
+            // ページ読み込み時に履歴を表示
+            window.onload = function () {
+                renderHistory();
+            };
 
             document.getElementById("schedule").innerHTML = tableHTML;
+
+            // 履歴保存を追加
+            const rateList = Array.from(document.querySelectorAll(".rate-input"))
+                .map(x => Number(x.value));
+            saveHistory(rateList, monthlyPayment, totalPayment, interest);
         }
     </script>
 </body>
