@@ -3,31 +3,58 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>元利均等返済シミュレーター</title>
 
-    <!-- Chart.js 読み込み -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Chart.js 読み込み -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <style>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 40px;
+    }
+
+    .rate-row {
+        margin-bottom: 5px;
+    }
+
+    table {
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+
+    th, td {
+        padding: 5px 10px;
+    }
+
+    /* スマホ向けレスポンシブ調整 */
+    @media (max-width: 600px) {
         body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
+            margin: 10px;
         }
-
-        .rate-row {
-            margin-bottom: 5px;
+        input[type="number"] {
+            width: 100%;
+            font-size: 18px;
         }
-
+        button {
+            width: 100%;
+            font-size: 18px;
+            margin-top: 10px;
+        }
         table {
-            border-collapse: collapse;
-            margin-bottom: 20px;
+            display: block;
+            overflow-x: scroll;
+            white-space: nowrap;
         }
-
-        th, td {
-            padding: 5px 10px;
+        canvas {
+            width: 100% !important;
+            height: auto !important;
         }
-    </style>
+    }
+</style>
 </head>
+
 
 <body>
     <h1>元利均等返済シミュレーター（Version 1.0）</h1>
