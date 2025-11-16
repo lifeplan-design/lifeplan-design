@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>元利均等返済シミュレーター</title>
 </head>
+
 <body>
     <h1>元利均等返済シミュレーター（Version 0.1）</h1>
 
@@ -42,7 +44,32 @@
             document.getElementById("monthly").innerText = "毎月返済額: " + Math.round(monthlyPayment).toLocaleString() + " 円";
             document.getElementById("total").innerText = "総返済額: " + Math.round(totalPayment).toLocaleString() + " 円";
             document.getElementById("interest").innerText = "支払利息総額: " + Math.round(interest).toLocaleString() + " 円";
+
+            // Version 0.2: 残高推移の計算
+            let balance = amount;
+            let principals = [];
+            let balances = [];
+            let interests = [];
+
+            for (let i = 0; i < n; i++) {
+                const interestPayment = balance * monthlyRate;
+                const principalPayment = monthlyPayment - interestPayment;
+
+                balance -= principalPayment;
+
+                // push（配列に記録）
+                balances.push(balance);
+                principals.push(principalPayment);
+                interests.push(interestPayment);
+            }
+
+            // デバッグ表示（後で消してOK）
+            console.log("残高推移", balances);
+            console.log("元金返済額推移", principals);
+            console.log("利息支払額推移", interests);
+
         }
     </script>
 </body>
+
 </html>
