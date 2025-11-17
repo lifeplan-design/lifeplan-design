@@ -3,11 +3,21 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>元利均等返済シミュレーター</title>
 
     <!-- Chart.js 読み込み -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Bootstrap CSS -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <!-- Bootstrap JavaScript -->
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js">
+    </script>
 
     <style>
         body {
@@ -19,181 +29,213 @@
             margin-bottom: 5px;
         }
 
-        table {
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        th,
-        td {
-            padding: 5px 10px;
-        }
-
-        /* スマホ向けレスポンシブ調整 */
+        /* スマホ向けレスポンシブ */
         @media (max-width: 600px) {
             body {
                 margin: 10px;
             }
-
             input[type="number"] {
                 width: 100%;
                 font-size: 18px;
             }
-
             button {
                 width: 100%;
                 font-size: 18px;
                 margin-top: 10px;
             }
-
             table {
                 display: block;
                 overflow-x: scroll;
                 white-space: nowrap;
             }
-
             canvas {
                 width: 100% !important;
                 height: auto !important;
             }
         }
     </style>
-
-    <!-- Bootstrap CSS 読み込み -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Bootstrap JS 読み込み -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js">
-    </script>
-
 </head>
 
-
-
 <body>
-    <div class="container my-4">
+<div class="container my-4">
 
-        <h1 class="mb-4">元利均等返済シミュレーター（Version 1.0）</h1>
+    <h1 class="mb-4">元利均等返済シミュレーター（Version 1.2）</h1>
 
+    <!-- 借入額 -->
+    <div class="mb-3">
+        <label class="form-label">借入額（万円）</label>
+        <input id="amount" type="number" class="form-control" value="4000">
+    </div>
 
-        <div class="mb-3">
-            <label class="form-label">借入額（万円）</label>
-            <input id="amount" type="number" class="form-control" value="4000">
+    <!-- 返済期間 -->
+    <div class="mb-3">
+        <label class="form-label">返済期間（年）</label>
+        <input id="years" type="number" class="form-control" value="35">
+    </div>
+
+    <!-- 金利パターン -->
+    <div class="mb-3">
+        <h2 class="h5">金利パターン</h2>
+
+        <div id="rate-list">
+            <div class="rate-row d-flex align-items-center mb-2">
+                <input type="number" class="rate-input form-control" style="width:120px;" value="1.0" step="0.01">
+                <span class="ms-2 me-2">%</span>
+                <button class="btn btn-danger btn-sm" onclick="removeRate(this)">－</button>
+            </div>
         </div>
 
+        <button onclick="addRate()" class="btn btn-secondary btn-sm mt-2">＋ 金利パターン追加</button>
+    </div>
 
-        <div class="mb-3">
-            <label class="form-label">返済期間（年）</label>
-            <input id="years" type="number" class="form-control" value="35">
+    <!-- 計算ボタン -->
+    <div class="mb-3">
+        <button onclick="calculate()" class="btn btn-primary w-100 mt-3">計算する</button>
+        <button onclick="compareRates()" class="btn btn-secondary w-100 mt-2">金利比較</button>
+    </div>
+
+    <!-- 結果カード -->
+    <div class="card mt-4">
+        <div class="card-body">
+            <h2 class="card-title h5 mb-3">結果</h2>
+
+            <p id="monthly" class="mb-1"></p>
+            <p id="total" class="mb-1"></p>
+            <p id="interest" class="mb-0"></p>
         </div>
+    </div>
 
-        <div class="mb-3">
-            <h2 class="h5">金利パターン</h2>
+    <!-- 返済スケジュール -->
+    <h2 class="mt-4">返済スケジュール（毎月）</h2>
+    <table id="schedule" class="table table-striped table-bordered"></table>
 
-            <div id="rate-list">
-                <div class="rate-row d-flex align-items-center mb-2">
-                    <input type="number" class="rate-input form-control" style="width:120px;" value="1.0" step="0.01">
+    <!-- 金利比較の表示場所 -->
+    <div id="rateCompare"></div>
+
+    <!-- JS -->
+    <script>
+
+        /*----------------------------------
+            Version 0.1
+            元利均等返済の計算
+        ----------------------------------*/
+        function calculate() {
+
+            const amount = Number(document.getElementById("amount").value) * 10000;
+            const rate = Number(document.querySelector(".rate-input").value) / 100;
+            const years = Number(document.getElementById("years").value);
+
+            const monthlyRate = rate / 12;
+            const n = years * 12;
+
+            const monthlyPayment =
+                amount * (monthlyRate * Math.pow(1 + monthlyRate, n)) /
+                (Math.pow(1 + monthlyRate, n) - 1);
+
+            const totalPayment = monthlyPayment * n;
+            const interest = totalPayment - amount;
+
+            document.getElementById("monthly").innerText =
+                "毎月返済額: " + Math.round(monthlyPayment).toLocaleString() + " 円";
+
+            document.getElementById("total").innerText =
+                "総返済額: " + Math.round(totalPayment).toLocaleString() + " 円";
+
+            document.getElementById("interest").innerText =
+                "支払利息総額: " + Math.round(interest).toLocaleString() + " 円";
+
+            // 残高推移
+            let balance = amount;
+            let principals = [];
+            let interests = [];
+            let balances = [];
+
+            for (let i = 0; i < n; i++) {
+                const interestPayment = balance * monthlyRate;
+                const principalPayment = monthlyPayment - interestPayment;
+
+                balance -= principalPayment;
+
+                principals.push(principalPayment);
+                interests.push(interestPayment);
+                balances.push(balance);
+            }
+
+            // テーブルの生成
+            let tableHTML =
+                "<tr><th>月</th><th>元金</th><th>利息</th><th>残高</th></tr>";
+
+            for (let i = 0; i < n; i++) {
+                tableHTML += `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${Math.round(principals[i]).toLocaleString()}</td>
+                        <td>${Math.round(interests[i]).toLocaleString()}</td>
+                        <td>${Math.round(balances[i]).toLocaleString()}</td>
+                    </tr>
+                `;
+            }
+
+            document.getElementById("schedule").innerHTML = tableHTML;
+        }
+
+        /*----------------------------------
+            金利パターン追加
+        ----------------------------------*/
+        function addRate() {
+            const list = document.getElementById("rate-list");
+
+            const row = document.createElement("div");
+            row.className = "rate-row mb-2";
+
+            row.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <input type="number"
+                        class="rate-input form-control"
+                        style="width:120px;"
+                        value="1.0"
+                        step="0.01">
                     <span class="ms-2 me-2">%</span>
                     <button class="btn btn-danger btn-sm" onclick="removeRate(this)">－</button>
                 </div>
-            </div>
+            `;
 
-            <button onclick="addRate()" class="btn btn-secondary btn-sm mt-2">＋ 金利パターン追加</button>
-        </div>
+            list.appendChild(row);
+        }
 
+        function removeRate(btn) {
+            btn.parentElement.parentElement.remove();
+        }
 
-        <div class="mb-3">
-            <button onclick="calculate()" class="btn btn-primary w-100 mt-3">計算する</button>
-            <button onclick="compareRates()" class="btn btn-secondary w-100 mt-2">金利比較</button>
-        </div>
+        /*----------------------------------
+            Version 0.4
+            複数金利比較一覧（カード化＋改善）
+        ----------------------------------*/
+        function compareRates() {
 
-        <div class="card mt-4">
-            <div class="card-body">
-                <h2 class="card-title h5 mb-3">結果</h2>
+            const amount = Number(document.getElementById("amount").value) * 10000;
+            const years = Number(document.getElementById("years").value);
+            const rateInputs = document.querySelectorAll(".rate-input");
+            const n = years * 12;
 
-                <p id="monthly" class="mb-1"></p>
-                <p id="total" class="mb-1"></p>
-                <p id="interest" class="mb-0"></p>
-            </div>
-        </div>
+            let html = `
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <h2 class="card-title h5 mb-3">金利比較一覧</h2>
 
-        <h2>返済スケジュール（毎月）</h2>
-        <table id="schedule" class="table table-striped table-bordered"></table>
+                        <div class="table-responsive">
+                        <table class="table table-striped table-bordered">
+                            <tr>
+                                <th>金利</th>
+                                <th>毎月返済額</th>
+                                <th>総返済額</th>
+                                <th>支払利息</th>
+                            </tr>
+            `;
 
-        <!-- ★ グラフ領域（STEP2） -->
-        <h2>残高推移グラフ</h2>
-        <canvas id="balanceChart" width="400" height="200"></canvas>
-
-        <h2>元金・利息の推移（毎月）</h2>
-        <canvas id="paymentChart" width="400" height="200"></canvas>
-
-        <!-- ★ 履歴領域 -->
-        <h2>計算履歴</h2>
-        <div id="history"></div>
-        <button onclick="clearHistory()">履歴をクリア</button>
-
-        <script>
-
-            /*----------------------------------
-    金利パターン追加
-----------------------------------*/
-            function addRate() {
-                const list = document.getElementById("rate-list");
-
-                const row = document.createElement("div");
-                row.className = "rate-row mb-2";
-
-                row.innerHTML = `
-        <div class="d-flex align-items-center">
-            <input type="number" 
-                class="rate-input form-control" 
-                style="width:120px;" 
-                value="1.0" 
-                step="0.01">
-            <span class="ms-2 me-2">%</span>
-            <button class="btn btn-danger btn-sm" onclick="removeRate(this)">－</button>
-        </div>
-    `;
-
-                list.appendChild(row);
-            }
-
-
-            /*----------------------------------
-                金利パターン削除
-            ----------------------------------*/
-            function removeRate(button) {
-                const row = button.parentElement;
-                const list = document.getElementById("rate-list");
-
-                if (list.children.length > 1) {
-                    row.remove();
-                } else {
-                    alert("最低1つは金利パターンを残してください。");
-                }
-            }
-
-
-            /*----------------------------------
-                Version 1.0
-                返済計算（1つ目の金利を使用）
-            ----------------------------------*/
-            function calculate() {
-
-                const amount = Number(document.getElementById("amount").value) * 10000;
-                const years = Number(document.getElementById("years").value);
-
-                const rateInputs = document.querySelectorAll(".rate-input");
-                if (rateInputs.length === 0) {
-                    alert("金利パターンを1つ以上入力してください。");
-                    return;
-                }
-
-                // 最初の金利で計算
-                const rate = Number(rateInputs[0].value) / 100;
-
+            for (let i = 0; i < rateInputs.length; i++) {
+                const rate = Number(rateInputs[i].value) / 100;
                 const monthlyRate = rate / 12;
-                const n = years * 12;
 
                 const monthlyPayment =
                     amount * (monthlyRate * Math.pow(1 + monthlyRate, n)) /
@@ -202,230 +244,32 @@
                 const totalPayment = monthlyPayment * n;
                 const interest = totalPayment - amount;
 
-                document.getElementById("monthly").innerText =
-                    "毎月返済額: " + Math.round(monthlyPayment).toLocaleString() + " 円";
-
-                document.getElementById("total").innerText =
-                    "総返済額: " + Math.round(totalPayment).toLocaleString() + " 円";
-
-                document.getElementById("interest").innerText =
-                    "支払利息総額: " + Math.round(interest).toLocaleString() + " 円";
-
-
-                /*----------------------------------
-                    残高 / 元金 / 利息 の推移計算
-                ----------------------------------*/
-                let balance = amount;
-                let principals = [];
-                let balances = [];
-                let interests = [];
-
-                for (let i = 0; i < n; i++) {
-                    const interestPayment = balance * monthlyRate;
-                    const principalPayment = monthlyPayment - interestPayment;
-
-                    balance -= principalPayment;
-
-                    balances.push(balance);
-                    principals.push(principalPayment);
-                    interests.push(interestPayment);
-                }
-
-                /*----------------------------------
-                    毎月の返済テーブル
-                ----------------------------------*/
-                let tableHTML = "<tr><th>月</th><th>元金</th><th>利息</th><th>残高</th></tr>";
-
-                for (let i = 0; i < n; i++) {
-                    tableHTML += `
-                    <tr>
-                        <td>${i + 1}</td>
-                        <td>${Math.round(principals[i]).toLocaleString()}</td>
-                        <td>${Math.round(interests[i]).toLocaleString()}</td>
-                        <td>${Math.round(balances[i]).toLocaleString()}</td>
-                    </tr>
-                `;
-                }
-
-                document.getElementById("schedule").innerHTML = tableHTML;
-
-                /*----------------------------------
-                    グラフ描画
-                ----------------------------------*/
-                drawBalanceChart(balances);
-                drawPaymentChart(principals, interests);
-
-                /*----------------------------------
-                    履歴保存
-                ----------------------------------*/
-                const rateList = Array.from(rateInputs).map(x => Number(x.value));
-                saveHistory(rateList, monthlyPayment, totalPayment, interest);
-            }
-
-
-            /*----------------------------------
-                Version 0.4
-                複数金利比較一覧（カード化）
-            ----------------------------------*/
-            function compareRates() {
-
-                const amount = Number(document.getElementById("amount").value) * 10000;
-                const years = Number(document.getElementById("years").value);
-                const rateInputs = document.querySelectorAll(".rate-input");
-                const n = years * 12;
-
-                let html = `
-        <div class="card mt-4">
-            <div class="card-body">
-                <h2 class="card-title h5 mb-3">金利比較一覧</h2>
-
-                <table class="table table-striped table-bordered">
-                    <tr>
-                        <th>金利</th>
-                        <th>毎月返済額</th>
-                        <th>総返済額</th>
-                        <th>支払利息</th>
-                    </tr>
-    `;
-
-                for (let i = 0; i < rateInputs.length; i++) {
-                    const rate = Number(rateInputs[i].value) / 100;
-                    const monthlyRate = rate / 12;
-
-                    const monthlyPayment =
-                        amount * (monthlyRate * Math.pow(1 + monthlyRate, n)) /
-                        (Math.pow(1 + monthlyRate, n) - 1);
-
-                    const totalPayment = monthlyPayment * n;
-                    const interest = totalPayment - amount;
-
-                    html += `
-            <tr>
-                <td>${(rate * 100).toFixed(2)} %</td>
-                <td>${Math.round(monthlyPayment).toLocaleString()}</td>
-                <td>${Math.round(totalPayment).toLocaleString()}</td>
-                <td>${Math.round(interest).toLocaleString()}</td>
-            </tr>
-        `;
-                }
-
                 html += `
-                </table>
-            </div>
-        </div>
-    `;
-
-                document.getElementById("rateCompare").innerHTML = html;
-            }
-
-            /*----------------------------------
-                グラフ機能（Version 0.6）
-            ----------------------------------*/
-            let balanceChartInstance = null;
-            let paymentChartInstance = null;
-
-            function drawBalanceChart(balances) {
-                const ctx = document.getElementById("balanceChart").getContext("2d");
-
-                if (balanceChartInstance) balanceChartInstance.destroy();
-
-                balanceChartInstance = new Chart(ctx, {
-                    type: "line",
-                    data: {
-                        labels: balances.map((_, i) => i + 1),
-                        datasets: [{
-                            label: "残高",
-                            data: balances,
-                            borderColor: "blue",
-                            borderWidth: 2,
-                            fill: false
-                        }]
-                    }
-                });
-            }
-
-            function drawPaymentChart(principals, interests) {
-                const ctx = document.getElementById("paymentChart").getContext("2d");
-
-                if (paymentChartInstance) paymentChartInstance.destroy();
-
-                paymentChartInstance = new Chart(ctx, {
-                    type: "bar",
-                    data: {
-                        labels: principals.map((_, i) => i + 1),
-                        datasets: [
-                            {
-                                label: "元金",
-                                data: principals,
-                                backgroundColor: "green"
-                            },
-                            {
-                                label: "利息",
-                                data: interests,
-                                backgroundColor: "orange"
-                            }
-                        ]
-                    }
-                });
-            }
-
-
-            /*----------------------------------
-                履歴保存（Version 0.5）
-            ----------------------------------*/
-            function saveHistory(rateList, monthly, total, interest) {
-                const now = new Date();
-                const timestamp = now.toLocaleString("ja-JP");
-
-                const record = {
-                    date: timestamp,
-                    rates: rateList,
-                    monthly: monthly,
-                    total: total,
-                    interest: interest
-                };
-
-                let history = JSON.parse(localStorage.getItem("loanHistory") || "[]");
-
-                history.unshift(record);
-                if (history.length > 20) history.pop();
-
-                localStorage.setItem("loanHistory", JSON.stringify(history));
-
-                renderHistory();
-            }
-
-            function renderHistory() {
-                let history = JSON.parse(localStorage.getItem("loanHistory") || "[]");
-
-                let html = "<table border='1'><tr><th>日時</th><th>金利</th><th>毎月</th><th>総返済額</th><th>利息</th></tr>";
-
-                for (let item of history) {
-                    html += `
                     <tr>
-                        <td>${item.date}</td>
-                        <td>${item.rates.join(", ")}%</td>
-                        <td>${Math.round(item.monthly).toLocaleString()} 円</td>
-                        <td>${Math.round(item.total).toLocaleString()} 円</td>
-                        <td>${Math.round(item.interest).toLocaleString()} 円</td>
+                        <td>${(rate * 100).toFixed(2)} %</td>
+                        <td>${Math.round(monthlyPayment).toLocaleString()}</td>
+                        <td>${Math.round(totalPayment).toLocaleString()}</td>
+                        <td>${Math.round(interest).toLocaleString()}</td>
                     </tr>
                 `;
-                }
-
-                html += "</table>";
-                document.getElementById("history").innerHTML = html;
             }
 
-            function clearHistory() {
-                localStorage.removeItem("loanHistory");
-                renderHistory();
-            }
+            html += `
+                        </table>
+                        </div> <!-- table-responsive -->
+                    </div> <!-- card-body -->
+                </div> <!-- card -->
 
-            window.onload = renderHistory;
+                <button onclick="compareRates()" class="btn btn-secondary w-100 mt-3">
+                    再度 金利比較を実行する
+                </button>
+            `;
 
-        </script>
+            document.getElementById("rateCompare").innerHTML = html;
+        }
 
-    </div>
+    </script>
+</div>
 </body>
 
 </html>
