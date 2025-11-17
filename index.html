@@ -689,21 +689,26 @@
                             {
                                 label: "通常返済（Before）",
                                 data: balanceBeforeList,
-                                borderColor: "#0D6EFD",                         // 明るめブルー
-                                backgroundColor: "rgba(13, 110, 253, 0.08)",    // 薄いブルー
+
+                                // Before：ブルーテーマ（副色）
+                                borderColor: "#0D6EFD",                         // 明るめブルー（副色）
+                                backgroundColor: "rgba(13, 110, 253, 0.08)",    // サイト全体と調和する淡い青
+
                                 borderWidth: 2,
                                 tension: 0.2
                             },
                             {
                                 label: "繰上返済後（After）",
                                 data: balanceAfterList,
-                                borderColor: "#005BAC",                         // 深いブルー（メイン）
-                                backgroundColor: "rgba(0, 91, 172, 0.12)",      // 少し濃いブルー
+
+                                // After：区別されやすいアクセントカラー（オレンジ）
+                                borderColor: "#FF8C00",                         // 青と補色のオレンジで視認性UP
+                                backgroundColor: "rgba(255, 140, 0, 0.20)",     // 半透明で主張しすぎず見やすい
+
                                 borderWidth: 2,
                                 tension: 0.2
                             }
                         ]
-
                     },
                     options: {
                         responsive: true,
@@ -712,7 +717,7 @@
                                 beginAtZero: true,
                                 ticks: {
                                     callback: function (value) {
-                                        return value.toLocaleString() + " 円";
+                                        return value.toLocaleString() + " 円";   // y軸を「円」で表示
                                     }
                                 }
                             }
