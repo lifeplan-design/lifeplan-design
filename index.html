@@ -556,9 +556,9 @@
             ----------------------------------*/
             function simulatePrepay() {
 
-                const amount = Number(document.getElementById("amount").value) * 10000;
+                const amount = unformatNumber(document.getElementById("amount").value) * 10000;
                 const years = Number(document.getElementById("years").value);
-                const mainRate = Number(document.querySelector(".rate-input").value) / 100;
+                const mainRate = Number(document.querySelector(".rate-input").value.replace(/,/g, "")) / 100;
 
                 const prepayAmount = unformatNumber(document.getElementById("prepayAmount").value);
                 const prepayMonth = Number(document.getElementById("prepayMonth").value);
@@ -638,15 +638,6 @@
                     balanceAfterList.push(Math.max(tempBalance2, 0));
 
                     // ★ ここで同時に利息と月数を更新
-                    totalInterestAfter += interestPayment;
-                    monthsAfter++;
-                }
-
-                while (balance > 0.1) {
-                    const interestPayment = balance * monthlyRate;
-                    const principalPayment = monthlyPayment - interestPayment;
-
-                    balance -= principalPayment;
                     totalInterestAfter += interestPayment;
                     monthsAfter++;
                 }
