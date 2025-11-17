@@ -292,6 +292,88 @@
 
                 document.getElementById("rateCompare").innerHTML = html;
             }
+            /*----------------------------------
+                Version 2.0
+                繰上返済（期間短縮型）シミュレーション
+            ----------------------------------*/
+            function simulatePrepay() {
+
+                const amount = Number(document.getElementById("amount").value) * 10000;
+                const years = Number(document.getElementById("years").value);
+                const mainRate = Number(document.querySelector(".rate-input").value) / 100;
+
+                const prepayAmount = Number(document.getElementById("prepayAmount").value);
+                const prepayMonth = Number(document.getElementById("prepayMonth").value);
+
+                const mode = document.getElementById("prepayMode").value;
+
+                const monthlyRate = mainRate / 12;
+                const n = years * 12;
+
+                // まず通常の毎月返済額を算出
+                const monthlyPayment =
+                    amount * (monthlyRate * Math.pow(1 + monthlyRate, n)) /
+                    (Math.pow(1 + monthlyRate, n) - 1);
+
+                let balance = amount;
+                let totalInterestBefore = 0;
+
+                // まず繰上返済前の支払を prepayMonth まで進める
+                for (let i = 0; i < prepayMonth; i++) {
+                    const interestPayment = balance * monthlyRate;
+                    const principalPayment = monthlyPayment - interestPayment;
+
+                    balance -= principalPayment;
+                    totalInterestBefore += interestPayment;
+                }
+
+                // ここで繰上返済額を投入
+                balance -= prepayAmount;
+                if (balance < 0) balance = 0;
+
+                // ★ 期間短縮型：「毎月返済額は据え置き」で期間だけ短くする
+                let totalInterestAfter = 0;
+                let monthsAfter = 0;
+
+                while (balance > 0.1) {
+                    const interestPayment = balance * monthlyRate;
+                    const principalPayment = monthlyPayment - interestPayment;
+
+                    balance -= principalPayment;
+                    totalInterestAfter += interestPayment;
+                    monthsAfter++;
+                }
+
+                const totalInterest = totalInterestBefore + totalInterestAfter;
+                const interestSaved = (monthlyPayment * n - amount) - totalInterest;
+
+                // 結果表示
+                let html = `
+        <div class="card mt-4">
+            <div class="card-body">
+                <h2 class="card-title h5 mb-3">繰上返済（期間短縮型）結果</h2>
+
+                <p>● 繰上返済なしの支払利息総額：<br>
+                    <strong>${Math.round((monthlyPayment * n - amount)).toLocaleString()} 円</strong>
+                </p>
+
+                <p>● 繰上返済後の支払利息総額：<br>
+                    <strong>${Math.round(totalInterest).toLocaleString()} 円</strong>
+                </p>
+
+                <p>● 削減できた利息：<br>
+                    <strong class="text-success">${Math.round(interestSaved).toLocaleString()} 円（節約）</strong>
+                </p>
+
+                <p>● 返済期間の短縮：<br>
+                    <strong>${monthsAfter} ヶ月短縮</strong>
+                </p>
+            </div>
+        </div>
+    `;
+
+                document.getElementById("rateCompare").innerHTML = html;
+            }
 
         </script>
     </div>
