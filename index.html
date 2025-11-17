@@ -276,6 +276,7 @@
                     </div>
                 </div>
 
+                <div id="rateError" class="text-danger small mt-1"></div>
                 <button onclick="addRate()" class="btn btn-secondary btn-sm w-100 mt-2">＋ 金利パターン追加</button>
             </div>
         </div>
@@ -469,18 +470,24 @@
             }
 
             function removeRate(btn) {
+
                 const list = document.getElementById("rate-list");
                 const rows = list.querySelectorAll(".rate-row");
 
-                // ★ 金利フィールドが1つしかない場合は削除しない
+                const msgArea = document.getElementById("rateError");
+                msgArea.innerText = "";  // エラーメッセージを一度クリア
+
+                // 金利フィールドが1つしかない場合は削除禁止（画面に赤字表示）
                 if (rows.length <= 1) {
-                    alert("金利パターンは最低でも1つ必要です。");
+                    msgArea.innerText = "金利パターンは最低1つ必要です（削除できません）。";
                     return;
                 }
 
-                // ★ rate-row（＝ input + % + ボタン の1セット）を削除
+                // 通常削除
                 btn.parentElement.remove();
             }
+
+            <div id="rateError" class="text-danger small mt-1"></div>
 
             /*----------------------------------
                 Version 0.4
