@@ -487,15 +487,13 @@
                 btn.parentElement.remove();
             }
 
-            <div id="rateError" class="text-danger small mt-1"></div>
-
             /*----------------------------------
                 Version 0.4
                 複数金利比較一覧（カード化＋改善）
             ----------------------------------*/
             function compareRates() {
 
-                const amount = Number(document.getElementById("amount").value) * 10000;
+                const amount = unformatNumber(document.getElementById("amount").value) * 10000;
                 const years = Number(document.getElementById("years").value);
                 const rateInputs = document.querySelectorAll(".rate-input");
                 const n = years * 12;
