@@ -509,7 +509,9 @@
             `;
 
                 for (let i = 0; i < rateInputs.length; i++) {
-                    const rate = Number(rateInputs[i].value) / 100;
+                    // ★ 金利欄を必ずカンマ除去 → 数値化
+                    const rateValue = rateInputs[i].value.replace(/,/g, "");
+                    const rate = Number(rateValue) / 100;
                     const monthlyRate = rate / 12;
 
                     const monthlyPayment =
