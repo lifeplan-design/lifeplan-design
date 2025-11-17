@@ -135,12 +135,15 @@
             </div>
         </div>
 
-        <!-- 金利比較の表示場所 -->
-        <div id="rateCompare"></div>
+<!-- 金利比較の表示場所 -->
+<div id="rateCompare"></div>
 
-        <!-- 返済スケジュール -->
-        <h2 class="mt-4">返済スケジュール（毎月）</h2>
-        <table id="schedule" class="table table-striped table-bordered"></table>
+<!-- 繰上返済結果の表示場所 -->
+<div id="prepayResult" class="mt-4"></div>
+
+<!-- 返済スケジュール -->
+<h2 class="mt-4">返済スケジュール（毎月）</h2>
+<table id="schedule" class="table table-striped table-bordered"></table>
 
         <!-- JS -->
         <script>
@@ -378,7 +381,7 @@
         </div>
     `;
 
-                document.getElementById("rateCompare").innerHTML = html;
+                document.getElementById("prepayResult").innerHTML = html;
             }
 
         </script>
