@@ -469,7 +469,17 @@
             }
 
             function removeRate(btn) {
-                btn.parentElement.parentElement.remove();
+                const list = document.getElementById("rate-list");
+                const rows = list.querySelectorAll(".rate-row");
+
+                // ★ 金利フィールドが1つしかない場合は削除しない
+                if (rows.length <= 1) {
+                    alert("金利パターンは最低でも1つ必要です。");
+                    return;
+                }
+
+                // ★ rate-row（＝ input + % + ボタン の1セット）を削除
+                btn.parentElement.remove();
             }
 
             /*----------------------------------
