@@ -145,7 +145,7 @@
         <!-- 結果カード -->
         <div class="card mt-4">
             <div class="card-body">
-                <h2 class="card-title h5 mb-3">結果</h2>
+                <h2 id="resultArea" class="card-title h5 mb-3">結果</h2>
 
                 <p id="monthly" class="mb-1"></p>
                 <p id="total" class="mb-1"></p>
@@ -240,6 +240,12 @@
                 }
 
                 document.getElementById("schedule").innerHTML = tableHTML;
+                
+                // ★ 計算完了後に結果カードへ自動スクロール
+                document.getElementById("resultArea").scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
             }
 
             /*----------------------------------
