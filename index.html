@@ -135,15 +135,23 @@
             </div>
         </div>
 
-<!-- 金利比較の表示場所 -->
-<div id="rateCompare"></div>
+        <!-- 金利比較の表示場所 -->
+        <div id="rateCompare"></div>
 
-<!-- 繰上返済結果の表示場所 -->
-<div id="prepayResult" class="mt-4"></div>
+        <!-- 繰上返済結果の表示場所 -->
+        <div id="prepayResult" class="mt-4"></div>
 
-<!-- 返済スケジュール -->
-<h2 class="mt-4">返済スケジュール（毎月）</h2>
-<table id="schedule" class="table table-striped table-bordered"></table>
+        <!-- グラフ表示領域 -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h2 class="card-title h5 mb-3">残高推移（繰上返済 Before / After）</h2>
+                <canvas id="balanceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 返済スケジュール -->
+        <h2 class="mt-4">返済スケジュール（毎月）</h2>
+        <table id="schedule" class="table table-striped table-bordered"></table>
 
         <!-- JS -->
         <script>
@@ -336,13 +344,62 @@
                     totalInterestBefore += interestPayment;
                 }
 
+
+                // ★ Before（繰上返済なし）の残高推移
+                let tempBalance = amount;
+                let balanceBeforeList = [];
+
+                for (let i = 0; i < n; i++) {
+                    const interestPayment = tempBalance * monthlyRate;
+                    const principalPayment = monthlyPayment - interestPayment;
+
+                    tempBalance -= principalPayment;
+                    if (tempBalance < 0) tempBalance = 0;
+
+                    balanceBeforeList.push(Math.max(tempBalance, 0));
+                }
+
                 // ここで繰上返済額を投入
                 balance -= prepayAmount;
                 if (balance < 0) balance = 0;
 
+                // ★ After（繰上返済あり）の残高推移
+                let balanceAfterList = [];
+
+                // prepayMonth までの残高を記録
+                // （本来の支払いの途中までは通常返済）
+                let tempBalance2 = amount;
+                for (let i = 0; i < prepayMonth; i++) {
+                    const interestPayment = tempBalance2 * monthlyRate;
+                    const principalPayment = monthlyPayment - interestPayment;
+                    tempBalance2 -= principalPayment;
+                    if (tempBalance2 < 0) tempBalance2 = 0;
+
+                    balanceAfterList.push(Math.max(tempBalance2, 0));
+                }
+
+                // 繰上返済を適用
+                tempBalance2 -= prepayAmount;
+                if (tempBalance2 < 0) tempBalance2 = 0;
+
+                // 繰上返済後、完済までの残高を記録
                 // ★ 期間短縮型：「毎月返済額は据え置き」で期間だけ短くする
                 let totalInterestAfter = 0;
                 let monthsAfter = 0;
+
+                while (tempBalance2 > 0.1) {
+                    const interestPayment = tempBalance2 * monthlyRate;
+                    const principalPayment = monthlyPayment - interestPayment;
+
+                    tempBalance2 -= principalPayment;
+
+                    // 残高配列に push
+                    balanceAfterList.push(Math.max(tempBalance2, 0));
+
+                    // ★ ここで同時に利息と月数を更新
+                    totalInterestAfter += interestPayment;
+                    monthsAfter++;
+                }
 
                 while (balance > 0.1) {
                     const interestPayment = balance * monthlyRate;
@@ -382,6 +439,61 @@
     `;
 
                 document.getElementById("prepayResult").innerHTML = html;
+
+                /*----------------------------------
+    ★ グラフ描画処理（Before / After）
+----------------------------------*/
+
+                // すでに描画済みのグラフがある場合は削除
+                if (window.balanceChartInstance) {
+                    window.balanceChartInstance.destroy();
+                }
+
+                // canvas 要素取得
+                const ctx = document.getElementById("balanceChart");
+
+                // グラフ用のラベル（月数）
+                const maxLength = Math.max(balanceBeforeList.length, balanceAfterList.length);
+                const labels = Array.from({ length: maxLength }, (_, i) => i + 1);
+
+                // グラフ描画
+                window.balanceChartInstance = new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: "通常返済（Before）",
+                                data: balanceBeforeList,
+                                borderColor: "rgba(54, 162, 235, 1)",
+                                backgroundColor: "rgba(54, 162, 235, 0.2)",
+                                borderWidth: 2,
+                                tension: 0.2
+                            },
+                            {
+                                label: "繰上返済後（After）",
+                                data: balanceAfterList,
+                                borderColor: "rgba(255, 99, 132, 1)",
+                                backgroundColor: "rgba(255, 99, 132, 0.2)",
+                                borderWidth: 2,
+                                tension: 0.2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function (value) {
+                                        return value.toLocaleString() + " 円";
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
             }
 
         </script>
