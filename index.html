@@ -64,7 +64,8 @@
         <!-- 借入額 -->
         <div class="mb-3">
             <label class="form-label">借入額（万円）</label>
-            <input id="amount" type="number" class="form-control" value="4000">
+            <input id="amount" type="number" class="form-control" value="4000" min="1" step="10">
+            <small class="text-muted">例：4000 → 4000万円（4,000万円）</small>
         </div>
 
         <!-- 返済期間 -->
@@ -176,8 +177,12 @@
                 const totalPayment = monthlyPayment * n;
                 const interest = totalPayment - amount;
 
-                document.getElementById("monthly").innerText =
-                    "毎月返済額: " + Math.round(monthlyPayment).toLocaleString() + " 円";
+                document.getElementById("monthly").innerHTML =
+                    `毎月返済額：<strong>${Math.round(monthlyPayment).toLocaleString()} 円</strong>`;
+                document.getElementById("total").innerHTML =
+                    `総返済額：<strong>${Math.round(totalPayment).toLocaleString()} 円</strong>`;
+                document.getElementById("interest").innerHTML =
+                    `支払利息総額：<strong>${Math.round(interest).toLocaleString()} 円</strong>`;
 
                 document.getElementById("total").innerText =
                     "総返済額: " + Math.round(totalPayment).toLocaleString() + " 円";
