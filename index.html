@@ -85,6 +85,156 @@
                 margin-right: 4px;
             }
         }
+
+        /* ===================================
+           A案：深いブルー テーマ
+           =================================== */
+
+        /* 全体の背景と文字色 */
+        body {
+            background-color: #F5F7FA;
+            /* うっすらグレー寄りの白 */
+            color: #333333;
+        }
+
+        /* 見出しカラー */
+        h1,
+        h2,
+        h3,
+        .card-title {
+            color: #005BAC;
+            /* メインの深いブルー */
+        }
+
+        /* カードデザインを少しリッチに */
+        .card {
+            border-radius: 8px;
+            border: 1px solid #dde3ec;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        }
+
+        /* 結果カード・繰上返済カードのタイトル強調 */
+        .card .card-title {
+            border-left: 4px solid #005BAC;
+            padding-left: 8px;
+        }
+
+        /* ボタンの色調整（Bootstrap の上書き） */
+        .btn-primary {
+            background-color: #005BAC;
+            border-color: #005BAC;
+        }
+
+        .btn-primary:hover,
+        .btn-primary:focus {
+            background-color: #004484;
+            border-color: #004484;
+        }
+
+        .btn-secondary {
+            background-color: #0D6EFD;
+            border-color: #0D6EFD;
+            color: #ffffff;
+        }
+
+        .btn-secondary:hover,
+        .btn-secondary:focus {
+            background-color: #0a58ca;
+            border-color: #0a58ca;
+        }
+
+        /* 繰上返済シミュレーションボタンは少しだけ目立たせる */
+        .btn-success {
+            background-color: #198754;
+            border-color: #198754;
+        }
+
+        .btn-success:hover,
+        .btn-success:focus {
+            background-color: #146c43;
+            border-color: #146c43;
+        }
+
+        /* 入力フォームの枠色も少しだけ青寄りに */
+        .form-control:focus {
+            border-color: #0D6EFD;
+            box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.25);
+        }
+
+        /* ===================================
+           A案：深いブルー テーマ
+           =================================== */
+
+        /* 全体の背景と文字色 */
+        body {
+            background-color: #F5F7FA;
+            /* うっすらグレー寄りの白 */
+            color: #333333;
+        }
+
+        /* 見出しカラー */
+        h1,
+        h2,
+        h3,
+        .card-title {
+            color: #005BAC;
+            /* メインの深いブルー */
+        }
+
+        /* カードデザインを少しリッチに */
+        .card {
+            border-radius: 8px;
+            border: 1px solid #dde3ec;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        }
+
+        /* 結果カード・繰上返済カードのタイトル強調 */
+        .card .card-title {
+            border-left: 4px solid #005BAC;
+            padding-left: 8px;
+        }
+
+        /* ボタンの色調整（Bootstrap の上書き） */
+        .btn-primary {
+            background-color: #005BAC;
+            border-color: #005BAC;
+        }
+
+        .btn-primary:hover,
+        .btn-primary:focus {
+            background-color: #004484;
+            border-color: #004484;
+        }
+
+        .btn-secondary {
+            background-color: #0D6EFD;
+            border-color: #0D6EFD;
+            color: #ffffff;
+        }
+
+        .btn-secondary:hover,
+        .btn-secondary:focus {
+            background-color: #0a58ca;
+            border-color: #0a58ca;
+        }
+
+        /* 繰上返済シミュレーションボタンは少しだけ目立たせる */
+        .btn-success {
+            background-color: #198754;
+            border-color: #198754;
+        }
+
+        .btn-success:hover,
+        .btn-success:focus {
+            background-color: #146c43;
+            border-color: #146c43;
+        }
+
+        /* 入力フォームの枠色も少しだけ青寄りに */
+        .form-control:focus {
+            border-color: #0D6EFD;
+            box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.25);
+        }
     </style>
 </head>
 
@@ -515,8 +665,8 @@
                 document.getElementById("prepayResult").innerHTML = html;
 
                 /*----------------------------------
-    ★ グラフ描画処理（Before / After）
-----------------------------------*/
+                  ★ グラフ描画処理（Before / After）
+                  ----------------------------------*/
 
                 // すでに描画済みのグラフがある場合は削除
                 if (window.balanceChartInstance) {
@@ -539,20 +689,21 @@
                             {
                                 label: "通常返済（Before）",
                                 data: balanceBeforeList,
-                                borderColor: "rgba(54, 162, 235, 1)",
-                                backgroundColor: "rgba(54, 162, 235, 0.2)",
+                                borderColor: "#0D6EFD",                         // 明るめブルー
+                                backgroundColor: "rgba(13, 110, 253, 0.08)",    // 薄いブルー
                                 borderWidth: 2,
                                 tension: 0.2
                             },
                             {
                                 label: "繰上返済後（After）",
                                 data: balanceAfterList,
-                                borderColor: "rgba(255, 99, 132, 1)",
-                                backgroundColor: "rgba(255, 99, 132, 0.2)",
+                                borderColor: "#005BAC",                         // 深いブルー（メイン）
+                                backgroundColor: "rgba(0, 91, 172, 0.12)",      // 少し濃いブルー
                                 borderWidth: 2,
                                 tension: 0.2
                             }
                         ]
+
                     },
                     options: {
                         responsive: true,
