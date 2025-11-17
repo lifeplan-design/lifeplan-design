@@ -265,18 +265,20 @@
 
             /*----------------------------------
                 Version 0.4
-                複数金利比較一覧
+                複数金利比較一覧（カード化）
             ----------------------------------*/
             function compareRates() {
 
                 const amount = Number(document.getElementById("amount").value) * 10000;
                 const years = Number(document.getElementById("years").value);
-
                 const rateInputs = document.querySelectorAll(".rate-input");
                 const n = years * 12;
 
                 let html = `
-                <h2>金利比較一覧</h2>
+        <div class="card mt-4">
+            <div class="card-body">
+                <h2 class="card-title h5 mb-3">金利比較一覧</h2>
+
                 <table class="table table-striped table-bordered">
                     <tr>
                         <th>金利</th>
@@ -284,7 +286,7 @@
                         <th>総返済額</th>
                         <th>支払利息</th>
                     </tr>
-            `;
+    `;
 
                 for (let i = 0; i < rateInputs.length; i++) {
                     const rate = Number(rateInputs[i].value) / 100;
@@ -298,20 +300,23 @@
                     const interest = totalPayment - amount;
 
                     html += `
-                    <tr>
-                        <td>${rateInputs[i].value}%</td>
-                        <td>${Math.round(monthlyPayment).toLocaleString()} 円</td>
-                        <td>${Math.round(totalPayment).toLocaleString()} 円</td>
-                        <td>${Math.round(interest).toLocaleString()} 円</td>
-                    </tr>
-                `;
+            <tr>
+                <td>${(rate * 100).toFixed(2)} %</td>
+                <td>${Math.round(monthlyPayment).toLocaleString()}</td>
+                <td>${Math.round(totalPayment).toLocaleString()}</td>
+                <td>${Math.round(interest).toLocaleString()}</td>
+            </tr>
+        `;
                 }
 
-                html += "</table>";
+                html += `
+                </table>
+            </div>
+        </div>
+    `;
 
-                document.getElementById("interest").insertAdjacentHTML("afterend", html);
+                document.getElementById("rateCompare").innerHTML = html;
             }
-
 
             /*----------------------------------
                 グラフ機能（Version 0.6）
