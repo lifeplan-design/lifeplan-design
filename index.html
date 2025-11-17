@@ -151,7 +151,8 @@
 
                 <div class="mb-3">
                     <label class="form-label">繰上返済額（円）</label>
-                    <input id="prepayAmount" type="number" class="form-control" value="1000000">
+                    <input id="prepayAmount" type="text" class="form-control" value="1,000,000"
+                        oninput="this.value = formatNumber(this.value)">
                 </div>
 
                 <div class="mb-3">
@@ -392,7 +393,7 @@
                 const years = Number(document.getElementById("years").value);
                 const mainRate = Number(document.querySelector(".rate-input").value) / 100;
 
-                const prepayAmount = Number(document.getElementById("prepayAmount").value);
+                const prepayAmount = unformatNumber(document.getElementById("prepayAmount").value);
                 const prepayMonth = Number(document.getElementById("prepayMonth").value);
 
                 const mode = document.getElementById("prepayMode").value;
