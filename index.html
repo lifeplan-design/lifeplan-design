@@ -100,7 +100,8 @@
 
                 <div class="mb-3">
                     <label class="form-label">借入額（万円）</label>
-                    <input id="amount" type="number" class="form-control" value="4000" min="1" step="10">
+                    <input id="amount" type="text" class="form-control" value="4,000"
+                        oninput="this.value = formatNumber(this.value)">
                     <small class="text-muted">例：4000 → 4000万円（4,000万円）</small>
                 </div>
 
@@ -207,13 +208,24 @@
         <!-- JS -->
         <script>
 
+            // 数字 → カンマ付き文字列
+            function formatNumber(value) {
+                if (value === "" || value === null) return "";
+                return Number(value.replace(/,/g, "")).toLocaleString();
+            }
+
+            // カンマ付き → 数値（内部処理用）
+            function unformatNumber(value) {
+                return Number(value.replace(/,/g, ""));
+            }
+
             /*----------------------------------
                 Version 0.1
                 元利均等返済の計算
             ----------------------------------*/
             function calculate() {
 
-                const amount = Number(document.getElementById("amount").value) * 10000;
+                const amount = unformatNumber(document.getElementById("amount").value) * 10000;
                 const rate = Number(document.querySelector(".rate-input").value) / 100;
                 const years = Number(document.getElementById("years").value);
 
