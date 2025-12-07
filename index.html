@@ -602,6 +602,12 @@
                 let afterBalanceList = [];
                 let totalInterestAfter = 0;
                 let monthsAfter = 0;
+                
+                // ★ prepayMonth までは Before の残高推移をそのまま入れる
+                for (let i = 0; i < prepayMonth; i++) {
+                    afterBalanceList.push(beforeBalanceList[i]);
+                }
+
 
                 // ★ Reduce（返済額軽減型）
                 if (mode === "reduce") {
