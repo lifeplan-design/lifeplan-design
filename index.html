@@ -548,6 +548,7 @@
               Version 2.1
               繰上返済（期間短縮型 + 返済額軽減型）
             ----------------------------------*/
+
             function simulatePrepay() {
 
                 const amount = unformatNumber(document.getElementById("amount").value) * 10000;
@@ -598,18 +599,17 @@
                 /*==============================
                   afterBalanceList / 新返済計画
                 ==============================*/
-
                 let afterBalanceList = [];
                 let totalInterestAfter = 0;
-                let monthsAfter = 0;
-                
-                // ★ prepayMonth までは Before の残高推移をそのまま入れる
+
+                // ★ prepayMonth までは Before をそのままコピー
                 for (let i = 0; i < prepayMonth; i++) {
                     afterBalanceList.push(beforeBalanceList[i]);
                 }
 
-
-                // ★ Reduce（返済額軽減型）
+                /*==============================
+                  ★ 返済額軽減型（Reduce）
+                ==============================*/
                 if (mode === "reduce") {
 
                     const remainingMonths = n - prepayMonth;
@@ -625,41 +625,34 @@
 
                         tempBalance2 -= principalPayment;
                         totalInterestAfter += interestPayment;
+
                         afterBalanceList.push(Math.max(tempBalance2, 0));
-                        monthsAfter++;
                     }
 
-                    const totalInterest = totalInterestBefore + totalInterestAfter;
                     const totalInterestBeforeAll = monthlyPayment * n - amount;
+                    const totalInterest = totalInterestBefore + totalInterestAfter;
                     const interestSaved = totalInterestBeforeAll - totalInterest;
 
-                    // ======================
-                    // 結果表示 D方式
-                    // ======================
                     document.getElementById("prepayResult").innerHTML = `
             <div class="card mt-4">
                 <div class="card-body">
                     <h2 class="card-title h5 mb-3">繰上返済（返済額軽減型）結果</h2>
 
-                    <p>【毎月返済額】</p>
                     <p><strong>${Math.round(monthlyPayment).toLocaleString()} 円 → ${Math.round(newMonthlyPayment).toLocaleString()} 円</strong>
                     <br><span class="text-success">▲ ${(monthlyPayment - newMonthlyPayment).toLocaleString()} 円/月</span></p>
 
-                    <p>【支払利息】</p>
                     <p><strong>${Math.round(totalInterestBeforeAll).toLocaleString()} 円 → ${Math.round(totalInterest).toLocaleString()} 円</strong>
                     <br><span class="text-success">▲ ${Math.round(interestSaved).toLocaleString()} 円節約</span></p>
 
-                    <p>【返済期間】</p>
-                    <p><strong>変わらず（${years} 年）</strong></p>
+                    <p><strong>返済期間：変わらず（${years} 年）</strong></p>
                 </div>
             </div>
         `;
                 }
 
-                // ========================
-                // ★ グラフ表示：Before / Reduce
-                // ========================
-
+                /*==============================
+                  グラフ描画
+                ==============================*/
                 if (window.balanceChartInstance) {
                     window.balanceChartInstance.destroy();
                 }
@@ -691,6 +684,150 @@
                     },
                     options: { responsive: true }
                 });
+            }
+
+
+            const amount = unformatNumber(document.getElementById("amount").value) * 10000;
+            const years = Number(document.getElementById("years").value);
+            const mainRate = Number(document.querySelector(".rate-input").value.replace(/,/g, "")) / 100;
+
+            const prepayAmount = unformatNumber(document.getElementById("prepayAmount").value);
+            const prepayMonth = Number(document.getElementById("prepayMonth").value);
+            const mode = document.getElementById("prepayMode").value;
+
+            const monthlyRate = mainRate / 12;
+            const n = years * 12;
+
+            // 通常の毎月返済額
+            const monthlyPayment =
+                amount * (monthlyRate * Math.pow(1 + monthlyRate, n)) /
+                (Math.pow(1 + monthlyRate, n) - 1);
+
+            /*==============================
+              Before（繰上返済なし）
+            ==============================*/
+            let beforeBalanceList = [];
+            let tempBalance = amount;
+            for (let i = 0; i < n; i++) {
+                const interest = tempBalance * monthlyRate;
+                const principal = monthlyPayment - interest;
+                tempBalance -= principal;
+                beforeBalanceList.push(Math.max(tempBalance, 0));
+            }
+
+            /*==============================
+              prepayMonthまで通常返済
+            ==============================*/
+            let balance = amount;
+            let totalInterestBefore = 0;
+
+            for (let i = 0; i < prepayMonth; i++) {
+                const interest = balance * monthlyRate;
+                const principal = monthlyPayment - interest;
+                balance -= principal;
+                totalInterestBefore += interest;
+            }
+
+            // 繰上返済額投入
+            balance -= prepayAmount;
+            if (balance < 0) balance = 0;
+
+            /*==============================
+              afterBalanceList / 新返済計画
+            ==============================*/
+
+            let afterBalanceList = [];
+            let totalInterestAfter = 0;
+            let monthsAfter = 0;
+
+            // ★ prepayMonth までは Before の残高推移をそのまま入れる
+            for (let i = 0; i < prepayMonth; i++) {
+                afterBalanceList.push(beforeBalanceList[i]);
+            }
+
+
+            // ★ Reduce（返済額軽減型）
+            if (mode === "reduce") {
+
+                const remainingMonths = n - prepayMonth;
+                const newMonthlyPayment =
+                    balance * (monthlyRate * Math.pow(1 + monthlyRate, remainingMonths)) /
+                    (Math.pow(1 + monthlyRate, remainingMonths) - 1);
+
+                let tempBalance2 = balance;
+
+                for (let i = 0; i < remainingMonths; i++) {
+                    const interestPayment = tempBalance2 * monthlyRate;
+                    const principalPayment = newMonthlyPayment - interestPayment;
+
+                    tempBalance2 -= principalPayment;
+                    totalInterestAfter += interestPayment;
+                    afterBalanceList.push(Math.max(tempBalance2, 0));
+                    monthsAfter++;
+                }
+
+                const totalInterest = totalInterestBefore + totalInterestAfter;
+                const totalInterestBeforeAll = monthlyPayment * n - amount;
+                const interestSaved = totalInterestBeforeAll - totalInterest;
+
+                // ======================
+                // 結果表示 D方式
+                // ======================
+                document.getElementById("prepayResult").innerHTML = `
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h2 class="card-title h5 mb-3">繰上返済（返済額軽減型）結果</h2>
+
+                    <p>【毎月返済額】</p>
+                    <p><strong>${Math.round(monthlyPayment).toLocaleString()} 円 → ${Math.round(newMonthlyPayment).toLocaleString()} 円</strong>
+                    <br><span class="text-success">▲ ${(monthlyPayment - newMonthlyPayment).toLocaleString()} 円/月</span></p>
+
+                    <p>【支払利息】</p>
+                    <p><strong>${Math.round(totalInterestBeforeAll).toLocaleString()} 円 → ${Math.round(totalInterest).toLocaleString()} 円</strong>
+                    <br><span class="text-success">▲ ${Math.round(interestSaved).toLocaleString()} 円節約</span></p>
+
+                    <p>【返済期間】</p>
+                    <p><strong>変わらず（${years} 年）</strong></p>
+                </div>
+            </div>
+        `;
+            }
+
+            // ========================
+            // ★ グラフ表示：Before / Reduce
+            // ========================
+
+            if (window.balanceChartInstance) {
+                window.balanceChartInstance.destroy();
+            }
+
+            const ctx = document.getElementById("balanceChart");
+            const maxLength = Math.max(beforeBalanceList.length, afterBalanceList.length);
+            const labels = Array.from({ length: maxLength }, (_, i) => i + 1);
+
+            window.balanceChartInstance = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: "通常返済（Before）",
+                            data: beforeBalanceList,
+                            borderColor: "#0D6EFD",
+                            backgroundColor: "rgba(13, 110, 253, 0.08)",
+                            borderWidth: 2,
+                        },
+                        {
+                            label: "返済額軽減型（Reduce）",
+                            data: afterBalanceList,
+                            borderColor: "#2ECC71",
+                            backgroundColor: "rgba(46, 204, 113, 0.15)",
+                            borderWidth: 3,
+                        }
+                    ]
+                },
+                options: { responsive: true }
+            });
 
             }
 
